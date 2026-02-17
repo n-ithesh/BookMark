@@ -16,7 +16,10 @@ interface Bookmark {
     user_id: string
 }
 
-export default function BookmarkManager({ user, initialBookmarks }: { user: any; initialBookmarks: Bookmark[] }) {
+import { type User } from '@supabase/supabase-js'
+import { type RealtimePostgresChangesPayload } from '@supabase/supabase-js'
+
+export default function BookmarkManager({ user, initialBookmarks }: { user: User; initialBookmarks: Bookmark[] }) {
     const [bookmarks, setBookmarks] = useState<Bookmark[]>(initialBookmarks)
     const [newTitle, setNewTitle] = useState("")
     const [newUrl, setNewUrl] = useState("")
@@ -40,7 +43,7 @@ export default function BookmarkManager({ user, initialBookmarks }: { user: any;
                     table: "bookmarks",
                     filter: `user_id=eq.${user.id}`,
                 },
-                (payload: any) => {
+                (payload: RealtimePostgresChangesPayload<Bookmark>) => {
                     if (payload.eventType === "INSERT") {
                         setBookmarks((prev) => {
                             const newRecord = payload.new as Bookmark
