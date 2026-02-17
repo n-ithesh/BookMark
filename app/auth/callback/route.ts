@@ -10,12 +10,20 @@ export async function GET(request: NextRequest) {
     if (code) {
         const supabase = await createClient()
         const { error } = await supabase.auth.exchangeCodeForSession(code)
+
         if (!error) {
-            redirect(next)
-        } else {
-            console.error('Auth error:', error)
-            redirect(`/auth/auth-code-error?error=${encodeURIComponent(error.message)}`)
+            return redirect(next)
         }
+
+        // Fallback: Check if session already exists (handling race conditions/double requests)
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+            console.log('Session already exists, redirecting despite error:', error?.message)
+            return redirect(next)
+        }
+
+        console.error('Auth error:', error)
+        return redirect(`/auth/auth-code-error?error=${encodeURIComponent(error.message)}`)
     }
 
     // return the user to an error page with instructions
