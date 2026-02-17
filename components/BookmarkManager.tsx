@@ -151,64 +151,92 @@ export default function BookmarkManager({ user, initialBookmarks }: { user: User
     }
 
     return (
-        <div className="space-y-8 w-full max-w-2xl mx-auto">
-            <Card>
+        <div className="space-y-8 w-full max-w-4xl mx-auto">
+            {/* Add Bookmark Section */}
+            <Card className="border-0 shadow-lg bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm overflow-hidden relative group">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-75 group-hover:opacity-100 transition-opacity" />
                 <CardHeader>
-                    <CardTitle>Add New Bookmark</CardTitle>
-                    <CardDescription>Save your favorite links.</CardDescription>
+                    <CardTitle className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400">
+                        Add New Bookmark
+                    </CardTitle>
+                    <CardDescription>Save and organize your favorite links instantly.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <form onSubmit={handleAddBookmark} className="flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
-                        <Input
-                            placeholder="Title"
-                            value={newTitle}
-                            onChange={(e) => setNewTitle(e.target.value)}
-                            required
-                            className="flex-1"
-                        />
-                        <Input
-                            placeholder="URL (https://...)"
-                            value={newUrl}
-                            onChange={(e) => setNewUrl(e.target.value)}
-                            required
-                            type="url"
-                            className="flex-1"
-                        />
-                        <Button type="submit" disabled={isLoading}>
-                            {isLoading ? "Adding..." : <><Plus className="mr-2 h-4 w-4" /> Add</>}
+                    <form onSubmit={handleAddBookmark} className="flex flex-col md:flex-row gap-4">
+                        <div className="flex-1 space-y-2">
+                            <Input
+                                placeholder="Website Title"
+                                value={newTitle}
+                                onChange={(e) => setNewTitle(e.target.value)}
+                                required
+                                className="bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800 focus:ring-indigo-500 transition-all font-medium"
+                            />
+                        </div>
+                        <div className="flex-[2] space-y-2">
+                            <Input
+                                placeholder="URL (e.g., https://example.com)"
+                                value={newUrl}
+                                onChange={(e) => setNewUrl(e.target.value)}
+                                required
+                                type="url"
+                                className="bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800 focus:ring-indigo-500 transition-all font-mono text-sm"
+                            />
+                        </div>
+                        <Button
+                            type="submit"
+                            disabled={isLoading}
+                            className="bg-gray-900 hover:bg-black dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 shadow-lg shadow-indigo-500/20 transition-all active:scale-95 md:w-auto w-full"
+                        >
+                            {isLoading ? (
+                                "Adding..."
+                            ) : (
+                                <><Plus className="mr-2 h-4 w-4" /> Add</>
+                            )}
                         </Button>
                     </form>
                 </CardContent>
             </Card>
 
-            <div className="grid gap-4">
+            {/* Bookmark List */}
+            <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2">
                 {bookmarks.length === 0 ? (
-                    <p className="text-center text-muted-foreground py-8">No bookmarks yet. Add one above!</p>
+                    <div className="col-span-full text-center py-12 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50">
+                        <div className="mx-auto w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center mb-3">
+                            <Plus className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                        </div>
+                        <p className="text-gray-500 dark:text-gray-400 font-medium">No bookmarks yet</p>
+                        <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Add your first one above to get started!</p>
+                    </div>
                 ) : (
                     bookmarks.map((bookmark) => (
-                        <Card key={bookmark.id} className="overflow-hidden transition-all hover:shadow-md">
-                            <CardContent className="p-4 flex items-center justify-between">
-                                <div className="flex items-center space-x-4 overflow-hidden">
-                                    <div className="p-2 bg-primary/10 rounded-full">
-                                        <ExternalLink className="h-4 w-4 text-primary" />
+                        <Card
+                            key={bookmark.id}
+                            className="group relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border-0 ring-1 ring-gray-200 dark:ring-gray-800 bg-white dark:bg-gray-900/60 backdrop-blur-sm"
+                        >
+                            <CardContent className="p-5 flex items-start justify-between gap-4">
+                                <div className="flex items-start gap-4 min-w-0">
+                                    <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl group-hover:scale-110 transition-transform duration-300 shrink-0">
+                                        <ExternalLink className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                                     </div>
-                                    <div className="flex flex-col min-w-0">
+                                    <div className="flex flex-col min-w-0 gap-1 pt-0.5">
                                         <a
                                             href={bookmark.url}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="font-medium hover:underline truncate"
+                                            className="font-semibold text-gray-900 dark:text-gray-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors truncate text-lg leading-tight"
                                         >
                                             {bookmark.title}
                                         </a>
-                                        <span className="text-xs text-muted-foreground truncate">{bookmark.url}</span>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate font-mono opacity-80 group-hover:opacity-100 transition-opacity">
+                                            {bookmark.url}
+                                        </p>
                                     </div>
                                 </div>
                                 <Button
                                     variant="ghost"
                                     size="icon"
                                     onClick={() => handleDeleteBookmark(bookmark.id)}
-                                    className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
+                                    className="text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all opacity-0 group-hover:opacity-100 shrink-0 -mr-2"
                                     aria-label="Delete bookmark"
                                 >
                                     <Trash2 className="h-4 w-4" />
