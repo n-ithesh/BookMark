@@ -1,13 +1,13 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { Button } from "@/components/ui/button"
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
 
-export default function AuthError() {
+function AuthErrorContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const error = searchParams.get('error')
@@ -43,5 +43,13 @@ export default function AuthError() {
                 </CardFooter>
             </Card>
         </div>
+    )
+}
+
+export default function AuthError() {
+    return (
+        <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Loading...</div>}>
+            <AuthErrorContent />
+        </Suspense>
     )
 }
