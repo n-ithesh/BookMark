@@ -7,7 +7,7 @@ A simple, secure, and real-time bookmark manager built with **Next.js (App Route
 - **Google OAuth Login**: Secure password-less authentication.
 - **Private Bookmarks**: Row Level Security (RLS) ensures users only see their own data.
 - **Real-time Updates**: Changes sync instantly across tabs using Supabase Realtime.
-- **Modern UI**: Built with Shadcn UI and Tailwind CSS.
+- **Modern UI**: Built with Shadcn UI and Tailwind CSS with a stunning glassmorphism design.
 
 ## Tech Stack
 
@@ -20,7 +20,7 @@ A simple, secure, and real-time bookmark manager built with **Next.js (App Route
 
 ### 1. Supabase Setup
 
-Since I cannot access your Supabase dashboard, you must run the following SQL query in the **SQL Editor** of your Supabase project to set up the database:
+You must run the following SQL query in the **SQL Editor** of your Supabase project to set up the database:
 
 ```sql
 -- 1. Create the bookmarks table
@@ -61,13 +61,17 @@ alter publication supabase_realtime add table bookmarks;
 
 1. Go to your **Supabase Dashboard** -> **Authentication** -> **Providers**.
 2. Enable **Google**.
-3. Enter the **Client ID**: `477625061949-19htfkn76iuanq6snb468nijde57pft3.apps.googleusercontent.com` (Provided by you).
-4. Enter the **Client Secret** (You need to get this from Google Cloud Console matching the Client ID, if you haven't already).
-5. Ensure the **Callback URL (Redirect URL)** in Google Cloud Console matches: `https://raioydympxxesnnqthzv.supabase.co/auth/v1/callback`.
+3. Enter your **Client ID** and **Client Secret** (obtained from Google Cloud Console).
+4. Ensure the **Callback URL** in Google Cloud Console matches your Supabase project's callback URL.
 
 ### 3. Environment Variables
 
-The `.env.local` file has been pre-configured with the provided credentials.
+Create a `.env.local` file with your project credentials:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=your-project-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+```
 
 ### 4. Run Locally
 
@@ -79,20 +83,18 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Challenges & Solutions
 
-### Challenge 1: Real-time Sync Across Tabs vs. Server Actions
-**Problem**: Using Next.js Server Actions (`revalidatePath`) updates the current tab efficiently but doesn't automatically push changes to other open tabs of the same user.
-**Solution**: Implemented a hybrid approach.
-- **Server Component**: Fetches initial data securely.
-- **Client Component**: Subscribes to Supabase Realtime (`postgres_changes`) to listen for `INSERT` and `DELETE` events.
-- **State Management**: The client component merges Realtime events with the local state. Deduplication logic ensures that if the current tab adds a bookmark (triggering a local update via router refresh AND a Realtime event), the UI doesn't show duplicates.
+### Challenge 1: Unreliable Realtime Updates
+**Problem**: The realtime connection was unstable, causing updates to be missed or delayed, especially when typing in input fields. This was caused by the Supabase client being re-initialized on every render, forcing the subscription to constantly reconnect.
+**Solution**: Memoized the Supabase client instance using `useState(() => createClient())` to ensure a stable, persistent connection throughout the component's lifecycle. Additionally, separated the subscription logic from other effects to prevent unnecessary re-subscriptions.
 
-### Challenge 2: Supabase Auth in Next.js App Router (Middleware vs Server Actions)
-**Problem**: Managing auth sessions securely where cookies need to be refreshed and accessed in both Server Components (read-only) and Server Actions (writeable).
-**Solution**: Used the standard `@supabase/ssr` pattern with separate helper functions for:
-- **Server**: Uses `cookies()` from `next/headers` with try-catch block for `setAll` to handle the read-only context of Server Components gracefully while working in Actions.
-- **Middleware**: A dedicated `updateSession` function ensures auth tokens are refreshed on every request before reaching the app logic.
-- **Callback Route**: A clean `route.ts` handler exchanges the OAuth code for a session and redirects the user.
+### Challenge 2: Slow UI Feedback (Optimistic Updates)
+**Problem**: Users experienced a delay between clicking "Add" or "Delete" and seeing the change on screen, as the UI waited for the server round-trip.
+**Solution**: Implemented **Optimistic UI updates**. The local state is updated immediately to reflect the user's action (adding a temporary item or removing a deleted one). The server request happens in the background. If it fails, the change is rolled back. If it succeeds, the temporary item is seamlessly replaced with real server data.
 
-### Challenge 3: Tailwind CSS v4 Integration
-**Problem**: The project was initialized with Tailwind v4, but standard Shadcn UI components often rely on `tailwind.config.js` (v3).
-**Solution**: Adapted the configuration by defining the Shadcn CSS variables and theme extensions directly in `app/globals.css` using the new `@theme` directive relative to Tailwind v4, ensuring the UI components render correctly without a legacy config file.
+### Challenge 3: Handling Duplicate Events
+**Problem**: When a user adds a bookmark, the Optimistic update adds it to the UI immediately. Shortly after, the Realtime subscription receives an `INSERT` event for the same item, potentially causing duplicates.
+**Solution**: Added intelligent deduplication logic. The `useEffect` hook listening to Realtime events checks if an incoming record matches an existing one (by ID) or an optimistic placeholder (by content match). If a match is found, it updates the existing entry instead of creating a duplicate, ensuring a smooth transition from "temporary" to "persisted" state.
+
+### Challenge 4: Tailwind CSS v4 & Standard Components
+**Problem**: Standard UI component libraries often rely on legacy Tailwind configuration, which conflicted with the new v4 engine.
+**Solution**: Adapted the design system by defining theme variables directly in `app/globals.css` using the `@theme` directive, ensuring compatibility without needing a legacy config file.
