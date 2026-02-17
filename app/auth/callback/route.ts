@@ -12,9 +12,12 @@ export async function GET(request: NextRequest) {
         const { error } = await supabase.auth.exchangeCodeForSession(code)
         if (!error) {
             redirect(next)
+        } else {
+            console.error('Auth error:', error)
+            redirect(`/auth/auth-code-error?error=${encodeURIComponent(error.message)}`)
         }
     }
 
     // return the user to an error page with instructions
-    redirect('/auth/auth-code-error')
+    redirect('/auth/auth-code-error?error=No+code+provided')
 }
