@@ -198,7 +198,7 @@ export default function BookmarkManager({ user, initialBookmarks }: { user: User
             </Card>
 
             {/* Bookmark List */}
-            <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2">
                 {bookmarks.length === 0 ? (
                     <div className="col-span-full text-center py-12 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50">
                         <div className="mx-auto w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center mb-3">
@@ -236,7 +236,8 @@ export default function BookmarkManager({ user, initialBookmarks }: { user: User
                                     variant="ghost"
                                     size="icon"
                                     onClick={() => handleDeleteBookmark(bookmark.id)}
-                                    className="text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all opacity-0 group-hover:opacity-100 shrink-0 -mr-2"
+                                    // Make delete button always visible on mobile (opacity-100) but hidden on desktop until hover (lg:opacity-0 lg:group-hover:opacity-100)
+                                    className="text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100 shrink-0 -mr-2"
                                     aria-label="Delete bookmark"
                                 >
                                     <Trash2 className="h-4 w-4" />
