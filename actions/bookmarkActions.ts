@@ -3,6 +3,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 
 export async function addBookmark(formData: FormData) {
     const supabase = await createClient()
@@ -53,12 +54,21 @@ export async function deleteBookmark(id: string) {
 
 export async function loginWithGoogle() {
     const supabase = await createClient()
-    const origin = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+
+    // Dynamically determine the origin
+    const headersList = await headers()
+    const host = headersList.get('host')
+    const protocol = headersList.get('x-forwarded-proto') ?? 'http'
+    const origin = `${protocol}://${host}`
 
     const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
             redirectTo: `${origin}/auth/callback`,
+            queryParams: {
+                access_type: 'offline',
+                prompt: 'consent',
+            },
         },
     })
 
